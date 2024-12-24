@@ -6,9 +6,9 @@
 #include <string.h>
 
 typedef struct {
-	int r;
-	int g;
-	int b;
+	unsigned char r;
+	unsigned char g;
+	unsigned char b;
 } pixel_t;
 
 typedef struct {
@@ -23,5 +23,12 @@ pixel_t **alloc_px_mat(int size1, int size2);
 void free_mat(char **mat, int size);
 void free_px_mat(pixel_t **mat, int size);
 
-image_t load(char* filename);
-void save(image_t* img, char* filename, bool is_ascii);
+image_t load(char *filename);
+void save(image_t *img, char* filename, bool is_ascii);
+
+image_t load_pgm(FILE *in, image_t *img);
+image_t load_ppm(FILE *in, image_t *img);
+image_t load_bw(FILE *in, image_t *img);
+image_t load_binary_pgm(FILE *in, image_t *img);
+image_t load_binary_ppm(FILE *in, image_t *img);
+image_t load_binary_bw(FILE *in, image_t *img);

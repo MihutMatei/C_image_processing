@@ -15,3 +15,7 @@ image_check
 tests.json
 .vscode
 image_editor
+*ppm
+*pgm
+.check.grade
+dummy

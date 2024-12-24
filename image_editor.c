@@ -36,17 +36,17 @@ int main(void)
 		} else if (strcmp(command, "SAVE") == 0) {
 			char save_file_name[256];
 			scanf("%s", save_file_name);
-			save(&img, save_file_name, true);
+			save(&img, save_file_name, false);
 		} else {
 			printf("Invalid command\n");
 		}
 		scanf("%s", command);
 	}
-	if(img.width == 0) {
+	if(img.height == 0) {
 		printf("No image loaded\n");
 	} else {
 		//free everything
-		free_px_mat(img.pixel_mat, img.width);
+		free_px_mat(img.pixel_mat, img.height);
 	}
 
 	return 0;
