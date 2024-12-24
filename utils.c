@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include "image_editor.h"
 
 pixel_t **alloc_px_mat(int size1, int size2)
@@ -26,19 +27,32 @@ pixel_t **alloc_px_mat(int size1, int size2)
 }
 
 
-void free_mat(void **mat)
+void free_mat(char **mat, int size)
 {
-	int size = sizeof(mat) / sizeof(mat[0]);
 	for(int i = 0; i < size; i++) {
 		free(mat[i]);
 	}
 	free(mat);
 }
 
+void free_px_mat(pixel_t **mat, int size)
+{
+	for(int i = 0; i < size; i++) {
+		free(mat[i]);
+	}
+	free(mat);
+}
+
+
 image_t load(char* filename)
 {
 	image_t img = {0};
 	FILE *in = fopen(filename, "rt");
+
+	if (!in) {
+		printf("Failed to load 1 %s\n", filename);
+		return img;
+	}
 
 	fscanf(in, "%s", img.type);
 	fscanf(in, "%d %d", &img.width, &img.height);
@@ -53,8 +67,8 @@ image_t load(char* filename)
 				   &img.pixel_mat[i][j].r,
 				   &img.pixel_mat[i][j].g,
 				   &img.pixel_mat[i][j].b) != 3) {
-					printf("Failed to load %s\n", filename);
-					free_mat(img.pixel_mat);
+					printf("Failed to load 2 %s\n", filename);
+					free_px_mat(img.pixel_mat, img.width);
 					strcpy(img.type,"");
 					img.height = 0;
 					img.width = 0;
@@ -70,8 +84,8 @@ image_t load(char* filename)
 				if (fread(&img.pixel_mat[i][j].r, sizeof(char), 1, in) != 1 ||
 					fread(&img.pixel_mat[i][j].g, sizeof(char), 1, in) != 1 ||
 					fread(&img.pixel_mat[i][j].b, sizeof(char), 1, in) != 1) {
-						printf("Failed to load %s\n", filename);
-						free_mat(img.pixel_mat);
+						printf("Failed to load 3 %s\n", filename);
+						free_px_mat(img.pixel_mat, img.width);
 						strcpy(img.type,"");
 						img.height = 0;
 						img.width = 0;
@@ -83,8 +97,8 @@ image_t load(char* filename)
 		}
 	} else {
 		//to fix
-		printf("Failed to load %s\n", filename);
-		free_mat(img.pixel_mat);
+		printf("Failed to load 4 %s\n", filename);
+		free_px_mat(img.pixel_mat, img.width);
 		strcpy(img.type,"");
 		img.height = 0;
 		img.width = 0;
@@ -95,4 +109,37 @@ image_t load(char* filename)
 	printf("Loaded %s\n", filename);
 
 	return img;
+}
+
+void save(image_t* img, char* filename, bool is_ascii)
+{
+	FILE *out = fopen(filename, "wt");
+
+	fprintf(out, "%s\n", img->type);
+	fprintf(out, "%d %d\n", img->width, img->height);
+	fprintf(out, "%d\n", img->max_val);
+
+	fclose(out);
+	out = fopen(filename, "wb");
+	fseek(out, 0, SEEK_END);
+
+	if (is_ascii) {
+		for (int i = 0; i < img->width; i++) {
+			for (int j = 0; j < img->height; j++) {
+				fprintf(out, "%d %d %d\n",
+					img->pixel_mat[i][j].r,
+					img->pixel_mat[i][j].g,
+					img->pixel_mat[i][j].b);
+			}
+		}
+	} else {
+		for (int i = 0; i < img->width; i++) {
+			for (int j = 0; j < img->height; j++) {
+				fwrite(&img->pixel_mat[i][j].r, sizeof(char), 1, out);
+				fwrite(&img->pixel_mat[i][j].g, sizeof(char), 1, out);
+				fwrite(&img->pixel_mat[i][j].b, sizeof(char), 1, out);
+			}
+		}
+	}
+	fclose(out);
 }

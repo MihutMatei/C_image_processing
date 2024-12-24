@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include "image_editor.h"
 
 int main(void)
@@ -10,13 +11,13 @@ int main(void)
 	image_t img = {0};
 
 	char command[256];
-	scanf("%s", &command);
+	scanf("%s", command);
 	while(strcmp(command, "EXIT") != 0) {
 		if (strcmp(command, "LOAD") == 0) {
 			char filename[256];
-			scanf("%s", &filename);
+			scanf("%s", filename);
 			if (img.pixel_mat) {
-				free_mat(img.pixel_mat);
+				free_px_mat(img.pixel_mat, img.width);
 				img.pixel_mat = NULL;
 			}
 			img = load(filename);
@@ -33,16 +34,19 @@ int main(void)
 		} else if (strcmp(command, "HISTOGRAM") == 0) {
 			
 		} else if (strcmp(command, "SAVE") == 0) {
-			
+			char save_file_name[256];
+			scanf("%s", save_file_name);
+			save(&img, save_file_name, true);
 		} else {
 			printf("Invalid command\n");
 		}
+		scanf("%s", command);
 	}
 	if(img.width == 0) {
 		printf("No image loaded\n");
 	} else {
 		//free everything
-		free_mat(img.pixel_mat);
+		free_px_mat(img.pixel_mat, img.width);
 	}
 
 	return 0;
