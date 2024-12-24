@@ -34,6 +34,7 @@ int main(void)
 		} else if (strcmp(command, "HISTOGRAM") == 0) {
 			
 		} else if (strcmp(command, "SAVE") == 0) {
+			//TODO: implement ascii or no ascii
 			char save_file_name[256];
 			scanf("%s", save_file_name);
 			save(&img, save_file_name, false);

@@ -55,7 +55,6 @@ image_t load_pgm(FILE *in, image_t *img) {
 				img->height = 0;
 				img->width = 0;
 				img->max_val = 0;
-				fclose(in);
 				return *img;
 			}
 			img->pixel_mat[i][j].r = (unsigned char)value;
@@ -68,13 +67,12 @@ image_t load_pgm(FILE *in, image_t *img) {
 				img->height = 0;
 				img->width = 0;
 				img->max_val = 0;
-				fclose(in);
 				return *img;
-				}
 			}
 		}
-		return *img;
 	}
+	return *img;
+}
 
 image_t load_ppm(FILE *in, image_t *img) {
 	for (int i = 0; i < img->height; i++) {
@@ -87,7 +85,6 @@ image_t load_ppm(FILE *in, image_t *img) {
 				img->height = 0;
 				img->width = 0;
 				img->max_val = 0;
-				fclose(in);
 				return *img;
 			}
 			img->pixel_mat[i][j].r = (unsigned char)r;
@@ -102,7 +99,6 @@ image_t load_ppm(FILE *in, image_t *img) {
 				img->height = 0;
 				img->width = 0;
 				img->max_val = 0;
-				fclose(in);
 				return *img;
 			}
 		}
@@ -121,7 +117,6 @@ image_t load_bw(FILE *in, image_t *img) {
 				img->height = 0;
 				img->width = 0;
 				img->max_val = 0;
-				fclose(in);
 				return *img;
 			}
 			img->pixel_mat[i][j].r = (unsigned char)value;
@@ -134,7 +129,6 @@ image_t load_bw(FILE *in, image_t *img) {
 				img->height = 0;
 				img->width = 0;
 				img->max_val = 0;
-				fclose(in);
 				return *img;
 			}
 		}
@@ -152,7 +146,6 @@ image_t load_binary_pgm(FILE *in, image_t *img) {
 				img->height = 0;
 				img->width = 0;
 				img->max_val = 0;
-				fclose(in);
 				return *img;
 			}
 			img->pixel_mat[i][j].g = img->pixel_mat[i][j].r;
@@ -164,7 +157,6 @@ image_t load_binary_pgm(FILE *in, image_t *img) {
 				img->height = 0;
 				img->width = 0;
 				img->max_val = 0;
-				fclose(in);
 				return *img;
 			}
 		}
@@ -184,7 +176,6 @@ image_t load_binary_ppm(FILE *in, image_t *img) {
 				img->height = 0;
 				img->width = 0;
 				img->max_val = 0;
-				fclose(in);
 				return *img;
 			}
 			if (img->pixel_mat[i][j].r > img->max_val ||
@@ -196,7 +187,6 @@ image_t load_binary_ppm(FILE *in, image_t *img) {
 				img->height = 0;
 				img->width = 0;
 				img->max_val = 0;
-				fclose(in);
 				return *img;
 			}
 		}
@@ -214,7 +204,6 @@ image_t load_binary_bw(FILE *in, image_t *img) {
 				img->height = 0;
 				img->width = 0;
 				img->max_val = 0;
-				fclose(in);
 				return *img;
 			}
 			img->pixel_mat[i][j].g = img->pixel_mat[i][j].r;
@@ -226,7 +215,6 @@ image_t load_binary_bw(FILE *in, image_t *img) {
 				img->height = 0;
 				img->width = 0;
 				img->max_val = 0;
-				fclose(in);
 				return *img;
 			}
 		}
@@ -296,14 +284,14 @@ void save(image_t *img, char* filename, bool is_ascii)
 		fprintf(out, "%d %d\n", img->width, img->height);
 		fprintf(out, "%d\n", img->max_val);
 
-		if(img->type[1] == '1' || img->type[1] == '2') {
+		if(img->type[1] == '1' || img->type[1] == '2' || img->type[1] == '4' || img->type[1] == '5') {
 			for (int i = 0; i < img->height; i++) {
 				for (int j = 0; j < img->width; j++) {
 					fprintf(out, "%d ", img->pixel_mat[i][j].r);
 				}
 				fprintf(out, "\n");
 			}
-		} else if(img->type[1] == '3') {
+		} else if(img->type[1] == '3' || img->type[1] == '6') {
 			for (int i = 0; i < img->height; i++) {
 				for (int j = 0; j < img->width; j++) {
 					fprintf(out, "%d %d %d ",
@@ -328,13 +316,13 @@ void save(image_t *img, char* filename, bool is_ascii)
 		fprintf(out, "%d %d\n", img->width, img->height);
 		fprintf(out, "%d\n", img->max_val);
 
-		if(img->type[1] == '4' || img->type[1] == '5') {
+		if(img->type[1] == '1' || img->type[1] == '2' || img->type[1] == '4' || img->type[1] == '5') {
 			for (int i = 0; i < img->height; i++) {
 				for (int j = 0; j < img->width; j++) {
 					fwrite(&img->pixel_mat[i][j].r, sizeof(unsigned char), 1, out);
 				}
 			}
-		} else if(img->type[1] == '6') {
+		} else if(img->type[1] == '3' || img->type[1] == '6') {
 			for (int i = 0; i < img->height; i++) {
 				for (int j = 0; j < img->width; j++) {
 					fwrite(&img->pixel_mat[i][j].r, sizeof(unsigned char), 1, out);
