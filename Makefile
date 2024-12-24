@@ -1,4 +1,4 @@
-#MIHUT Matei 311CA
+# 311CA_MihutMatei_Tema3
 cc = gcc
 CFLAGS = -Wall -lm -Wextra -g
 SRC = *.c

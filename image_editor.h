@@ -1,3 +1,4 @@
+//311CA_MihutMatei_Tema3
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -17,5 +18,7 @@ typedef struct {
 	pixel_t **pixel_mat;
 } image_t;
 
-int is_binary_file(char *filename);
-void load(char* filename);
+pixel_t **alloc_px_mat(int size1, int size2);
+void free_mat(void **mat);
+
+image_t load(char* filename);
