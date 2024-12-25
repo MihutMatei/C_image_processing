@@ -19,12 +19,24 @@ typedef struct {
 	pixel_t **pixel_mat;
 } image_t;
 
+typedef struct {
+	int x1, y1, x2, y2;
+} selection_t;
+
 pixel_t **alloc_px_mat(int size1, int size2);
 void free_mat(char **mat, int size);
 void free_px_mat(pixel_t **mat, int size);
 
 image_t load(char *filename);
 void save(image_t *img, char* filename, bool is_ascii);
+
+void handle_select(image_t *img, selection_t *selection);
+void set_selection_all(image_t *img, selection_t *selection);
+
+bool is_selection_square(selection_t *selection);
+bool is_selection_all(image_t *img,selection_t *selection);
+
+void rotate(image_t *img, selection_t *selection, int angle);
 
 image_t load_pgm(FILE *in, image_t *img);
 image_t load_ppm(FILE *in, image_t *img);
