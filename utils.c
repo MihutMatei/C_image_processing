@@ -436,3 +436,26 @@ void rotate(image_t *img, selection_t *selection, int angle)
     }
 	set_selection_all(img, selection);
 }
+
+void crop(image_t *img, selection_t *selection)
+{
+	int new_height = selection->y2 - selection->y1;
+	int new_width = selection->x2 - selection->x1;
+
+	pixel_t **new_mat = alloc_px_mat(new_height, new_width);
+
+	for(int i = selection->y1; i < selection->y2; i++) {
+		for(int j = selection->x1; j < selection->x2; j++) {
+			new_mat[i - selection->y1][j - selection->x1] = img->pixel_mat[i][j];
+		}
+	}
+
+	img->height = new_height;
+	img->width = new_width;
+
+	free_px_mat(img->pixel_mat, img->height);
+	img->pixel_mat = new_mat;
+	
+	set_selection_all(img, selection);
+
+}

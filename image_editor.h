@@ -37,6 +37,8 @@ bool is_selection_square(selection_t *selection);
 bool is_selection_all(image_t *img,selection_t *selection);
 
 void rotate(image_t *img, selection_t *selection, int angle);
+void crop(image_t *img, selection_t *selection);
+
 
 image_t load_pgm(FILE *in, image_t *img);
 image_t load_ppm(FILE *in, image_t *img);

@@ -51,7 +51,12 @@ int main(void)
 		} else if (strcmp(command, "EQUALIZE") == 0) {
 			
 		} else if (strcmp(command, "CROP") == 0) {
-			
+			if(img.height == 0) {
+				printf("No image loaded\n");
+			} else {
+				crop(&img, &selection);
+				printf("Image cropped\n");
+			}
 		} else if (strcmp(command, "APPLY") == 0) {
 			
 		} else if (strcmp(command, "HISTOGRAM") == 0) {
