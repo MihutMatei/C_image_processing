@@ -49,7 +49,7 @@ int main(void)
 			}
 
 		} else if (strcmp(command, "EQUALIZE") == 0) {
-			
+			equalize(&img, &selection);
 		} else if (strcmp(command, "CROP") == 0) {
 			if(img.height == 0) {
 				printf("No image loaded\n");
@@ -58,11 +58,21 @@ int main(void)
 				printf("Image cropped\n");
 			}
 		} else if (strcmp(command, "APPLY") == 0) {
-			
+			apply_filter(&img, &selection);
 		} else if (strcmp(command, "HISTOGRAM") == 0) {
-			
+			if(img.height == 0) {
+				printf("No image loaded\n");
+			} else {
+				int max_stars, nr_of_bins;
+				if(scanf("%d%d", &max_stars, &nr_of_bins) != 2) {
+					printf("Invalid set of parameters\n");
+				} else if (nr_of_bins > 256) {
+					printf("Invalid set of parameters\n");
+				} else {
+					histogram(&img, &selection, max_stars, nr_of_bins);
+				}
+			}
 		} else if (strcmp(command, "SAVE") == 0) {
-			//TODO: implement ascii or no ascii
 			char argument[256], save_file_name[256], is_ascii[256];
 		
 			fgets(argument, 256, stdin);

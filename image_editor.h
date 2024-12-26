@@ -38,7 +38,9 @@ bool is_selection_all(image_t *img,selection_t *selection);
 
 void rotate(image_t *img, selection_t *selection, int angle);
 void crop(image_t *img, selection_t *selection);
-
+void histogram(image_t *img, selection_t *selection,int x, int y);
+void equalize(image_t *img, selection_t *selection);
+void apply_filter(image_t *img, selection_t *selection);
 
 image_t load_pgm(FILE *in, image_t *img);
 image_t load_ppm(FILE *in, image_t *img);
@@ -46,3 +48,5 @@ image_t load_bw(FILE *in, image_t *img);
 image_t load_binary_pgm(FILE *in, image_t *img);
 image_t load_binary_ppm(FILE *in, image_t *img);
 image_t load_binary_bw(FILE *in, image_t *img);
+
+int clamp(int value);

@@ -285,8 +285,13 @@ void save(image_t *img, char* filename, bool is_ascii)
 			printf("Failed to save %s\n", filename);
 			return;
 		}
-
-		fprintf(out, "%s\n", img->type);
+		if (img->type[1] == '4' ||  img->type[1] == '5' ||
+			img->type[1] == '6') {
+			fprintf(out, "%c%c\n", 'P', img->type[1] - 3);
+		}
+		else {
+			fprintf(out, "%s\n", img->type);
+		}
 		fprintf(out, "%d %d\n", img->width, img->height);
 		fprintf(out, "%d\n", img->max_val);
 
@@ -313,12 +318,21 @@ void save(image_t *img, char* filename, bool is_ascii)
 		printf("Saved %s\n", filename);
 
 	} else {
+		///TODO: nu uita ca imaginile nu pot fi deschise decat daca typul de imagine e cel bun P4 P5 P6 momentan nu se face conversia din plain in binar decat 
+		///pentru continutul imaginii, probabil trebuie schimbat antetul corespunzator
 		FILE *out = fopen(filename, "wb");
 		if(!out) {
 			printf("Failed to save %s\n", filename);
 			return;
 		}
-		fprintf(out, "%s\n", img->type);
+		
+		if (img->type[1] == '1' ||  img->type[1] == '2' ||
+			img->type[1] == '3') {
+			fprintf(out, "%c%c\n", 'P', img->type[1] + 3);
+		}
+		else {
+			fprintf(out, "%s\n", img->type);
+		}
 		fprintf(out, "%d %d\n", img->width, img->height);
 		fprintf(out, "%d\n", img->max_val);
 
@@ -458,4 +472,113 @@ void crop(image_t *img, selection_t *selection)
 	
 	set_selection_all(img, selection);
 
+}
+
+void histogram(image_t *img, selection_t *selection, int max_stars, int nr_of_bins)
+{
+	if (img->type[1] == '3' || img->type[1] == '6') {
+		printf("Black and white image needed\n");
+		return;
+	}
+	int freq[256] = {0};
+	for(int i = selection->y1; i < selection->y2; i++) {
+		for(int j = selection->x1; j < selection->x2; j++) {
+			freq[img->pixel_mat[i][j].r]++;
+		}
+	}
+	int new_freq[256] = {0}, maxfreq = 0;
+	int steps = 256 / nr_of_bins;
+	for (int i = 0; i < nr_of_bins; i++) {
+		for(int j = 0; j < steps; j++) {
+			new_freq[i] += freq[i * steps + j];
+		}
+		if (new_freq[i] > maxfreq) {
+			maxfreq = new_freq[i];
+		}
+	}
+	for (int i = 0; i < nr_of_bins; i++) {
+		int nr_stars = (new_freq[i] * max_stars) / maxfreq;
+		printf("%d\t|\t", nr_stars);
+		for (int j = 0; j < nr_stars; j++) {
+			printf("*");
+		}
+		printf("\n");
+	}
+}
+
+int clamp(int value)
+{
+	if (value < 0) {
+		return 0;
+	}
+	if (value > 255) {
+		return 255;
+	}
+	return value;
+}
+
+void equalize(image_t *img, selection_t *selection)
+{
+	if(img->height == 0) {
+		printf("No image loaded\n");
+		return;
+	}
+	if (img->type[1] == '3' || img->type[1] == '6') {
+		printf("Black and white image needed\n");
+		return;
+	}
+
+	int freq[256] = {0};
+	for(int i = selection->y1; i < selection->y2; i++) {
+		for(int j = selection->x1; j < selection->x2; j++) {
+			freq[img->pixel_mat[i][j].r]++;
+		}
+	}
+	for(int i = selection->y1; i < selection->y2; i++) {
+		for(int j = selection->x1; j < selection->x2; j++) {
+			int sum = 0;
+			for(int k = 0; k < img->pixel_mat[i][j].r; k++) {
+				sum += freq[k];
+			}
+			img->pixel_mat[i][j].r = (unsigned char)((sum * 255) / (img->height * img->width));
+			img->pixel_mat[i][j].g = img->pixel_mat[i][j].r;
+			img->pixel_mat[i][j].b = img->pixel_mat[i][j].r;
+		}
+	}
+	printf("Equalization done\n");
+	return;
+}
+
+void apply_filter(image_t *img, selection_t *selection)
+{
+	char filter[256];
+	fgets(filter, 256, stdin);
+	if(img->height == 0) {
+		printf("No image loaded\n");
+		return;
+	}
+	if(img->type[1] != '3' || img->type[1] != '6') {
+		printf("Easy, Charlie Chaplin\n");
+		return;
+	}
+	if (strcmp(filter,"EDGE")) {
+		int di[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
+		int dj[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
+		for (int i = selection->y1; i < selection->y2; i++) {
+			for (int j = selection->x1; j < selection->x2; j++) {
+				// int newval = 
+			}
+		}
+	} if (strcmp(filter,"SHARPEN")) {
+
+	} if (strcmp(filter,"BLUR")) {
+
+	} if (strcmp(filter,"GAUSSIAN_BLUR")) {
+
+	} else {
+		printf("APPLY parameter invalid\n");
+		return;
+	}
+
+	printf("APPLY %s done\n", filter);
 }
