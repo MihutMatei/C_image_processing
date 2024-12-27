@@ -582,8 +582,14 @@ void apply_edge(image_t *img, selection_t *selection)
 			}
 		}
 	}
-	free_px_mat(img->pixel_mat, img->height);
-	img->pixel_mat = new_mat;
+	for (int i = selection->y1; i < selection->y2; i++) {
+		for (int j = selection->x1; j < selection->x2; j++) {
+			img->pixel_mat[i][j].r = new_mat[i][j].r;
+			img->pixel_mat[i][j].g = new_mat[i][j].g;
+			img->pixel_mat[i][j].b = new_mat[i][j].b;
+		}
+	}
+	free_px_mat(new_mat, img->height);
 }
 
 void apply_sharpen(image_t *img, selection_t *selection)
@@ -619,8 +625,14 @@ void apply_sharpen(image_t *img, selection_t *selection)
 			}
 		}
 	}
-	free_px_mat(img->pixel_mat, img->height);
-	img->pixel_mat = new_mat;
+	for (int i = selection->y1; i < selection->y2; i++) {
+		for (int j = selection->x1; j < selection->x2; j++) {
+			img->pixel_mat[i][j].r = new_mat[i][j].r;
+			img->pixel_mat[i][j].g = new_mat[i][j].g;
+			img->pixel_mat[i][j].b = new_mat[i][j].b;
+		}
+	}
+	free_px_mat(new_mat, img->height);
 }
 
 void apply_box_blur(image_t *img, selection_t *selection)
@@ -656,8 +668,14 @@ void apply_box_blur(image_t *img, selection_t *selection)
 			}
 		}
 	}
-	free_px_mat(img->pixel_mat, img->height);
-	img->pixel_mat = new_mat;
+	for (int i = selection->y1; i < selection->y2; i++) {
+		for (int j = selection->x1; j < selection->x2; j++) {
+			img->pixel_mat[i][j].r = new_mat[i][j].r;
+			img->pixel_mat[i][j].g = new_mat[i][j].g;
+			img->pixel_mat[i][j].b = new_mat[i][j].b;
+		}
+	}
+	free_px_mat(new_mat, img->height);
 }
 
 void apply_gaussian_blur(image_t *img, selection_t *selection)
@@ -693,8 +711,14 @@ void apply_gaussian_blur(image_t *img, selection_t *selection)
 			}
 		}
 	}
-	free_px_mat(img->pixel_mat, img->height);
-	img->pixel_mat = new_mat;
+	for (int i = selection->y1; i < selection->y2; i++) {
+		for (int j = selection->x1; j < selection->x2; j++) {
+			img->pixel_mat[i][j].r = new_mat[i][j].r;
+			img->pixel_mat[i][j].g = new_mat[i][j].g;
+			img->pixel_mat[i][j].b = new_mat[i][j].b;
+		}
+	}
+	free_px_mat(new_mat, img->height);
 }
 
 void apply_filter(image_t *img, selection_t *selection)
