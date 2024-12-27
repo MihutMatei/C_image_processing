@@ -725,11 +725,12 @@ void apply_filter(image_t *img, selection_t *selection)
 {
 	char filter[256];
 	fgets(filter, 256, stdin);
+	filter[strlen(filter) - 1] = '\0';
 	if(img->height == 0) {
 		printf("No image loaded\n");
 		return;
 	}
-	if(img->type[1] != '3' || img->type[1] != '6') {
+	if(img->type[1] != '3' && img->type[1] != '6') {
 		printf("Easy, Charlie Chaplin\n");
 		return;
 	}
@@ -746,5 +747,5 @@ void apply_filter(image_t *img, selection_t *selection)
 		return;
 	}
 
-	printf("APPLY %s done\n", filter);
+	printf("APPLY%s done\n", filter);
 }
