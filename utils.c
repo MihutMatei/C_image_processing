@@ -243,6 +243,11 @@ image_t load(char* filename)
 	fscanf(in, "%d", &img.max_val);
 
 	img.pixel_mat = alloc_px_mat(img.height, img.width);
+	if (!img.pixel_mat) {
+		fclose(in);
+		printf("Failed to allocate memory for image\n");
+		return img;
+	}
 
 	if (img.type[1] == '1') {
 		img = load_bw(in, &img);
