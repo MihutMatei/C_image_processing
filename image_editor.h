@@ -41,6 +41,10 @@ void crop(image_t *img, selection_t *selection);
 void histogram(image_t *img, selection_t *selection,int x, int y);
 void equalize(image_t *img, selection_t *selection);
 void apply_filter(image_t *img, selection_t *selection);
+void apply_edge(image_t *img, selection_t *selection);
+void apply_sharpen(image_t *img, selection_t *selection);
+void apply_box_blur(image_t *img, selection_t *selection);
+void apply_gaussian_blur(image_t *img, selection_t *selection);
 
 image_t load_pgm(FILE *in, image_t *img);
 image_t load_ppm(FILE *in, image_t *img);

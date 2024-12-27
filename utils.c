@@ -549,6 +549,154 @@ void equalize(image_t *img, selection_t *selection)
 	return;
 }
 
+void apply_edge(image_t *img, selection_t *selection)
+{
+	pixel_t **new_mat = alloc_px_mat(img->height, img->width);
+	int di[9] = {-1, -1, -1, 0, 0, 0, 1, 1, 1};
+	int dj[9] = {-1, 0, 1, -1, 0, 1, -1, 0, 1};
+	int dv[9] = {-1, -1, -1, -1, 8, -1, -1, -1, -1};
+	for (int i = selection->y1; i < selection->y2; i++) {
+		for (int j = selection->x1; j < selection->x2; j++) {
+			bool is_edge = false;
+			pixel_t sum = {0};
+			for (int k = 0; k < 9; k++) {
+				int ni = i + di[k];
+				int nj = j + dj[k];
+				if (ni < 0 || ni >= img->height || nj < 0 || nj >= img->width) {
+					is_edge = true;
+					break;
+				} else {
+					sum.r+= img->pixel_mat[ni][nj].r * dv[k];
+					sum.g+= img->pixel_mat[ni][nj].g * dv[k];
+					sum.b+= img->pixel_mat[ni][nj].b * dv[k];
+				}
+			}
+			if(!is_edge) {
+				new_mat[i][j].r = clamp(sum.r);
+				new_mat[i][j].g = clamp(sum.g);
+				new_mat[i][j].b = clamp(sum.b);
+			} else {
+				new_mat[i][j].r = img->pixel_mat[i][j].r;
+				new_mat[i][j].g = img->pixel_mat[i][j].g;
+				new_mat[i][j].b = img->pixel_mat[i][j].b;
+			}
+		}
+	}
+	free_px_mat(img->pixel_mat, img->height);
+	img->pixel_mat = new_mat;
+}
+
+void apply_sharpen(image_t *img, selection_t *selection)
+{
+	pixel_t **new_mat = alloc_px_mat(img->height, img->width);
+	int di[9] = {-1, -1, -1, 0, 0, 0, 1, 1, 1};
+	int dj[9] = {-1, 0, 1, -1, 0, 1, -1, 0, 1};
+	int dv[9] = {0, -1 , 0, -1, 5, -1, 0, -1, 0};
+	for (int i = selection->y1; i < selection->y2; i++) {
+		for (int j = selection->x1; j < selection->x2; j++) {
+			bool is_edge = false;
+			pixel_t sum = {0};
+			for (int k = 0; k < 9; k++) {
+				int ni = i + di[k];
+				int nj = j + dj[k];
+				if (ni < 0 || ni >= img->height || nj < 0 || nj >= img->width) {
+					is_edge = true;
+					break;
+				} else {
+					sum.r+= img->pixel_mat[ni][nj].r * dv[k];
+					sum.g+= img->pixel_mat[ni][nj].g * dv[k];
+					sum.b+= img->pixel_mat[ni][nj].b * dv[k];
+				}
+			}
+			if(!is_edge) {
+				new_mat[i][j].r = clamp(sum.r);
+				new_mat[i][j].g = clamp(sum.g);
+				new_mat[i][j].b = clamp(sum.b);
+			} else {
+				new_mat[i][j].r = img->pixel_mat[i][j].r;
+				new_mat[i][j].g = img->pixel_mat[i][j].g;
+				new_mat[i][j].b = img->pixel_mat[i][j].b;
+			}
+		}
+	}
+	free_px_mat(img->pixel_mat, img->height);
+	img->pixel_mat = new_mat;
+}
+
+void apply_box_blur(image_t *img, selection_t *selection)
+{
+	pixel_t **new_mat = alloc_px_mat(img->height, img->width);
+	int di[9] = {-1, -1, -1, 0, 0, 0, 1, 1, 1};
+	int dj[9] = {-1, 0, 1, -1, 0, 1, -1, 0, 1};
+	int dv[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+	for (int i = selection->y1; i < selection->y2; i++) {
+		for (int j = selection->x1; j < selection->x2; j++) {
+			bool is_edge = false;
+			pixel_t sum = {0};
+			for (int k = 0; k < 9; k++) {
+				int ni = i + di[k];
+				int nj = j + dj[k];
+				if (ni < 0 || ni >= img->height || nj < 0 || nj >= img->width) {
+					is_edge = true;
+					break;
+				} else {
+					sum.r+= img->pixel_mat[ni][nj].r * dv[k];
+					sum.g+= img->pixel_mat[ni][nj].g * dv[k];
+					sum.b+= img->pixel_mat[ni][nj].b * dv[k];
+				}
+			}
+			if(!is_edge) {
+				new_mat[i][j].r = clamp(sum.r) / 9;
+				new_mat[i][j].g = clamp(sum.g) / 9;
+				new_mat[i][j].b = clamp(sum.b) / 9;
+			} else {
+				new_mat[i][j].r = img->pixel_mat[i][j].r;
+				new_mat[i][j].g = img->pixel_mat[i][j].g;
+				new_mat[i][j].b = img->pixel_mat[i][j].b;
+			}
+		}
+	}
+	free_px_mat(img->pixel_mat, img->height);
+	img->pixel_mat = new_mat;
+}
+
+void apply_gaussian_blur(image_t *img, selection_t *selection)
+{
+	pixel_t **new_mat = alloc_px_mat(img->height, img->width);
+	int di[9] = {-1, -1, -1, 0, 0, 0, 1, 1, 1};
+	int dj[9] = {-1, 0, 1, -1, 0, 1, -1, 0, 1};
+	int dv[9] = {1, 2, 1, 2, 4, 2, 1, 2, 1};
+	for (int i = selection->y1; i < selection->y2; i++) {
+		for (int j = selection->x1; j < selection->x2; j++) {
+			bool is_edge = false;
+			pixel_t sum = {0};
+			for (int k = 0; k < 9; k++) {
+				int ni = i + di[k];
+				int nj = j + dj[k];
+				if (ni < 0 || ni >= img->height || nj < 0 || nj >= img->width) {
+					is_edge = true;
+					break;
+				} else {
+					sum.r+= img->pixel_mat[ni][nj].r * dv[k];
+					sum.g+= img->pixel_mat[ni][nj].g * dv[k];
+					sum.b+= img->pixel_mat[ni][nj].b * dv[k];
+				}
+			}
+			if(!is_edge) {
+				new_mat[i][j].r = clamp(sum.r) / 16;
+				new_mat[i][j].g = clamp(sum.g) / 16;
+				new_mat[i][j].b = clamp(sum.b) / 16;
+			} else {
+				new_mat[i][j].r = img->pixel_mat[i][j].r;
+				new_mat[i][j].g = img->pixel_mat[i][j].g;
+				new_mat[i][j].b = img->pixel_mat[i][j].b;
+			}
+		}
+	}
+	free_px_mat(img->pixel_mat, img->height);
+	img->pixel_mat = new_mat;
+}
+
 void apply_filter(image_t *img, selection_t *selection)
 {
 	char filter[256];
@@ -562,19 +710,13 @@ void apply_filter(image_t *img, selection_t *selection)
 		return;
 	}
 	if (strcmp(filter,"EDGE")) {
-		int di[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
-		int dj[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
-		for (int i = selection->y1; i < selection->y2; i++) {
-			for (int j = selection->x1; j < selection->x2; j++) {
-				// int newval = 
-			}
-		}
+		apply_edge(img, selection);
 	} if (strcmp(filter,"SHARPEN")) {
-
+		apply_sharpen(img, selection);
 	} if (strcmp(filter,"BLUR")) {
-
+		apply_box_blur(img, selection);
 	} if (strcmp(filter,"GAUSSIAN_BLUR")) {
-
+		apply_gaussian_blur(img, selection);
 	} else {
 		printf("APPLY parameter invalid\n");
 		return;

@@ -10,8 +10,8 @@ int main(void)
 {
 	image_t img = {0};
 	selection_t selection = {0};
-
 	char command[256];
+
 	scanf("%s", command);
 	while(strcmp(command, "EXIT") != 0) {
 		if (strcmp(command, "LOAD") == 0) {
@@ -23,13 +23,9 @@ int main(void)
 			}
 			img = load(filename);
 			set_selection_all(&img, &selection);
-
 		} else if (strcmp(command, "SELECT") == 0) {
-			
 			handle_select(&img, &selection);
-
 		} else if (strcmp(command, "ROTATE") == 0) {
-
 			if (img.height == 0) {
 				printf("No image loaded\n");
 			} else {
@@ -47,7 +43,6 @@ int main(void)
 					}
 				}
 			}
-
 		} else if (strcmp(command, "EQUALIZE") == 0) {
 			equalize(&img, &selection);
 		} else if (strcmp(command, "CROP") == 0) {
@@ -77,13 +72,11 @@ int main(void)
 		
 			fgets(argument, 256, stdin);
 			sscanf(argument, "%s %s", save_file_name, is_ascii);
-
 			if (strcmp(is_ascii, "ascii") == 0) {
 				save(&img, save_file_name, true);
 			} else {
 				save(&img, save_file_name, false);
-			}
-			
+			}		
 		} else {
 			printf("Invalid command\n");
 		}
@@ -95,6 +88,5 @@ int main(void)
 		//free everything
 		free_px_mat(img.pixel_mat, img.height);
 	}
-
 	return 0;
 }
