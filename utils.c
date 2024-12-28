@@ -341,11 +341,13 @@ void save(image_t *img, char* filename, bool is_ascii)
 			return;
 		}
 		
-		if (img->type[1] == '1' ||  img->type[1] == '2' ||
-			img->type[1] == '3') {
-			fprintf(out, "%c%c\n", 'P', img->type[1] + 3);
-		}
-		else {
+		if (img->type[1] == '1') {
+			fprintf(out, "%c%c\n", 'P', '4');
+		} else if (img->type[1] == '2') {
+			fprintf(out, "%c%c\n", 'P', '5');
+		} else if (img->type[1] == '3') {
+			fprintf(out, "%c%c\n", 'P', '6');
+		} else {
 			fprintf(out, "%s\n", img->type);
 		}
 		fprintf(out, "%d %d\n", img->width, img->height);
@@ -435,45 +437,82 @@ bool is_selection_all(image_t *img,selection_t *selection)
 void rotate(image_t *img, selection_t *selection, int angle)
 {
     pixel_t **new_mat;
+
+    // Ensure the angle is within the range [-360, 360]
     angle = angle % 360;
-    
-    if (angle == 90 || angle == -270 || angle == 270 || angle == -90) {
+
+    // Determine new dimensions for allocation based on the angle
+    if (is_selection_all(img, selection) && 
+       (angle == 90 || angle == -270 || angle == 270 || angle == -90)) {
         new_mat = alloc_px_mat(img->width, img->height);
     } else {
         new_mat = alloc_px_mat(img->height, img->width);
     }
 
-    if (angle == 90 || angle == -270) {
-        for (int i = selection->y1; i < selection->y2; i++) {
-            for (int j = selection->x1; j < selection->x2; j++) {
-                new_mat[j][img->height - i - 1] = img->pixel_mat[i][j];
+    // Handle rotation cases
+    if (is_selection_all(img, selection)) {
+        if (angle == 90 || angle == -270) {
+            for (int i = 0; i < img->height; i++) {
+                for (int j = 0; j < img->width; j++) {
+                    new_mat[j][img->height - i - 1] = img->pixel_mat[i][j];
+                }
+            }
+        } else if (angle == 180 || angle == -180) {
+            for (int i = 0; i < img->height; i++) {
+                for (int j = 0; j < img->width; j++) {
+                    new_mat[img->height - i - 1][img->width - j - 1] = img->pixel_mat[i][j];
+                }
+            }
+        } else if (angle == 270 || angle == -90) {
+            for (int i = 0; i < img->height; i++) {
+                for (int j = 0; j < img->width; j++) {
+                    new_mat[img->width - j - 1][i] = img->pixel_mat[i][j];
+                }
+            }
+        } else {
+            // Copy original image if angle is 0 or unsupported
+            for (int i = 0; i < img->height; i++) {
+                for (int j = 0; j < img->width; j++) {
+                    new_mat[i][j] = img->pixel_mat[i][j];
+                }
             }
         }
-    } else if (angle == 180 || angle == -180) {
+    } else {
+        // Handle rotation for a selected region
         for (int i = selection->y1; i < selection->y2; i++) {
             for (int j = selection->x1; j < selection->x2; j++) {
-                new_mat[img->height - i - 1][img->width - j - 1] = img->pixel_mat[i][j];
-            }
-        }
-    } else if (angle == 270 || angle == -90) {
-        for (int i = selection->y1; i < selection->y2; i++) {
-            for (int j = selection->x1; j < selection->x2; j++) {
-                new_mat[img->width - j - 1][i] = img->pixel_mat[i][j];
+                if (angle == 90 || angle == -270) {
+                    new_mat[j - selection->x1][selection->y2 - i - 1] = img->pixel_mat[i][j];
+                } else if (angle == 180 || angle == -180) {
+                    new_mat[selection->y2 - i - 1][selection->x2 - j - 1] = img->pixel_mat[i][j];
+                } else if (angle == 270 || angle == -90) {
+                    new_mat[selection->x2 - j - 1][i - selection->y1] = img->pixel_mat[i][j];
+                } else {
+                    new_mat[i - selection->y1][j - selection->x1] = img->pixel_mat[i][j];
+                }
             }
         }
     }
-
+	
     // Free the old pixel matrix and assign the new one
-    free_px_mat(img->pixel_mat, img->height);
-    img->pixel_mat = new_mat;
-
-    // Swap width and height if the rotation is 90 or 270 degrees
-    if (angle == 90 || angle == -270 || angle == 270 || angle == -90) {
-        int temp = img->width;
-        img->width = img->height;
-        img->height = temp;
-    }
-	set_selection_all(img, selection);
+    if(is_selection_all(img, selection)) {
+		free_px_mat(img->pixel_mat, img->height);
+    	img->pixel_mat = new_mat;
+		if (angle == 90 || angle == -270 || angle == 270 || angle == -90) {
+       		int temp = img->width;
+       		img->width = img->height;
+       		img->height = temp;
+    	}
+	} else {
+		for(int i = selection->y1; i < selection->y2; i++) {
+			for(int j = selection->x1; j < selection->x2; j++) {
+				img->pixel_mat[i][j] = new_mat[i - selection->y1][j - selection->x1];
+			}
+		}
+		free_px_mat(new_mat, img->height);
+	}
+   
+        
 }
 
 void crop(image_t *img, selection_t *selection)
