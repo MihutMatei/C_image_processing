@@ -27,21 +27,17 @@ pixel_t **alloc_px_mat(int size1, int size2)
 	return mat;
 }
 
-
-void free_mat(char **mat, int size)
-{
-	for(int i = 0; i < size; i++) {
-		free(mat[i]);
-	}
-	free(mat);
-}
-
 void free_px_mat(pixel_t **mat, int size)
 {
-	for(int i = 0; i < size; i++) {
-		free(mat[i]);
-	}
-	free(mat);
+    if (mat) {
+        for (int i = 0; i < size; i++) {
+            if (mat[i]) {
+                free(mat[i]);
+            }
+        }
+        free(mat);
+    }
+	mat = NULL;
 }
 
 image_t load_pgm(FILE *in, image_t *img)
@@ -235,6 +231,7 @@ image_t load(char* filename)
 
 	if (!in) {
 		printf("Failed to load %s\n", filename);
+		img.pixel_mat = NULL;
 		return img;
 	}
 
@@ -271,7 +268,9 @@ image_t load(char* filename)
 		img = load_binary_ppm(in, &img);
 	} else {
 		printf("Failed to load %s\n", filename);
-		free_px_mat(img.pixel_mat, img.height);
+		if(img.pixel_mat) {
+			free_px_mat(img.pixel_mat, img.height);
+		}
 		strcpy(img.type,"");
 		img.height = 0;
 		img.width = 0;
@@ -288,6 +287,10 @@ image_t load(char* filename)
 
 void save(image_t *img, char* filename, bool is_ascii)
 {
+	if(img->height == 0) {
+		printf("No image loaded\n");
+		return;
+	}
 	if (is_ascii) {
 		FILE *out = fopen(filename, "wt");
 
@@ -374,19 +377,16 @@ void set_selection_all(image_t *img, selection_t *selection)
 	selection->y2 = img->height;
 }
 
-void handle_select(image_t *img, selection_t *selection) {
-	char argument[256];
+void handle_select(image_t *img, selection_t *selection, char *argument) {
 	if (img->height == 0) {
 		printf("No image loaded\n");
-		fgets(argument, 256, stdin); // consumes the potential argument
 	} else {
 		int x1, y1, x2, y2;
-		fgets(argument, 256, stdin);
 		if (strstr(argument, "ALL")) {
 			set_selection_all(img, selection);
 			printf("Selected ALL\n");
 		} else {
-			sscanf(argument, "%d %d %d %d", &x1, &y1, &x2, &y2);
+			sscanf(argument, "%*s %d %d %d %d", &x1, &y1, &x2, &y2);
 			if (x1 < 0 || x1 > img->width || x2 < 0 || x2 > img->width ||
 				y1 < 0 || y1 > img->height || y2 < 0 || y2 > img->height) {
 				printf("Invalid set of coordinates\n");
@@ -520,6 +520,7 @@ void equalize(image_t *img, selection_t *selection)
 {
 	if(img->height == 0) {
 		printf("No image loaded\n");
+		img->pixel_mat = NULL;
 		return;
 	}
 	if (img->type[1] == '3' || img->type[1] == '6') {
@@ -544,7 +545,7 @@ void equalize(image_t *img, selection_t *selection)
 			img->pixel_mat[i][j].b = img->pixel_mat[i][j].r;
 		}
 	}
-	printf("Equalization done\n");
+	printf("Equalize done\n");
 	return;
 }
 
@@ -723,28 +724,47 @@ void apply_gaussian_blur(image_t *img, selection_t *selection)
 	free_px_mat(new_mat, img->height);
 }
 
-void apply_filter(image_t *img, selection_t *selection)
+void apply_filter(image_t *img, selection_t *selection, char *argument)
 {
-	char filter[256];
-	fgets(filter, 256, stdin);
-	filter[strlen(filter) - 1] = '\0'; // Remove the newline character
-	memmove(filter, filter + 1, strlen(filter));
 	if(img->height == 0) {
 		printf("No image loaded\n");
 		return;
 	}
-	if(img->type[1] != '3' && img->type[1] != '6') {
-		printf("Easy, Charlie Chaplin\n");
+
+	char filter[256];
+	if (sscanf(argument, "%*s %s", filter) != 1) {
+		printf("Invalid command\n");
 		return;
 	}
+	
 	if (strcmp(filter, "EDGE") == 0) {
-		apply_edge(img, selection);
+		if(img->type[1] != '3' && img->type[1] != '6') {
+			printf("Easy, Charlie Chaplin\n");
+			return;
+		} else {
+			apply_edge(img, selection);
+		}
 	} else if (strcmp(filter, "SHARPEN") == 0) {
-		apply_sharpen(img, selection);
+		if(img->type[1] != '3' && img->type[1] != '6') {
+			printf("Easy, Charlie Chaplin\n");
+			return;
+		} else {
+			apply_sharpen(img, selection);
+		}
 	} else if (strcmp(filter, "BLUR") == 0) {
-		apply_box_blur(img, selection);
+		if(img->type[1] != '3' && img->type[1] != '6') {
+			printf("Easy, Charlie Chaplin\n");
+			return;
+		} else {
+			apply_box_blur(img, selection);
+		}
 	} else if (strcmp(filter, "GAUSSIAN_BLUR") == 0) {
-		apply_gaussian_blur(img, selection);
+		if(img->type[1] != '3' && img->type[1] != '6') {
+			printf("Easy, Charlie Chaplin\n");
+			return;
+		} else {
+			apply_gaussian_blur(img, selection);
+		}
 	} else {
 		printf("APPLY parameter invalid\n");
 		return;

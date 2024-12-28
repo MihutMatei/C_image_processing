@@ -10,13 +10,18 @@ int main(void)
 {
 	image_t img = {0};
 	selection_t selection = {0};
-	char command[256];
+	char command[256], buffer[256];
 
-	scanf("%s", command);
-	while(strcmp(command, "EXIT") != 0) {
-		if (strcmp(command, "LOAD") == 0) {
+	fgets(buffer, 256, stdin);
+	sscanf(buffer, "%s", command);
+
+	while (strcmp(command, "EXIT") != 0) {
+		
+		if (strcmp(command, "EXIT") == 0) {
+			break;
+		} else if (strcmp(command, "LOAD") == 0) {
 			char filename[256];
-			scanf("%s", filename);
+			sscanf(buffer, "%*s %s", filename);
 			if (img.pixel_mat) {
 				free_px_mat(img.pixel_mat, img.height);
 				img.pixel_mat = NULL;
@@ -24,7 +29,7 @@ int main(void)
 			img = load(filename);
 			set_selection_all(&img, &selection);
 		} else if (strcmp(command, "SELECT") == 0) {
-			handle_select(&img, &selection);
+			handle_select(&img, &selection, buffer);
 		} else if (strcmp(command, "ROTATE") == 0) {
 			if (img.height == 0) {
 				printf("No image loaded\n");
@@ -34,11 +39,11 @@ int main(void)
 					printf("The selection must be square\n");
 				} else {
 					int angle;
-					scanf("%d", &angle);
+					sscanf(buffer, "%*s %d", &angle);
 					if (angle % 90 != 0) {
 						printf("Unsupported rotation angle\n");
 					} else {
-						rotate(&img, &selection , angle);
+						rotate(&img, &selection, angle);
 						printf("Rotated %d\n", angle);
 					}
 				}
@@ -46,20 +51,20 @@ int main(void)
 		} else if (strcmp(command, "EQUALIZE") == 0) {
 			equalize(&img, &selection);
 		} else if (strcmp(command, "CROP") == 0) {
-			if(img.height == 0) {
+			if (img.height == 0) {
 				printf("No image loaded\n");
 			} else {
 				crop(&img, &selection);
 				printf("Image cropped\n");
 			}
 		} else if (strcmp(command, "APPLY") == 0) {
-			apply_filter(&img, &selection);
+			apply_filter(&img, &selection, buffer);
 		} else if (strcmp(command, "HISTOGRAM") == 0) {
-			if(img.height == 0) {
+			if (img.height == 0) {
 				printf("No image loaded\n");
 			} else {
 				int max_stars, nr_of_bins;
-				if(scanf("%d%d", &max_stars, &nr_of_bins) != 2) {
+				if (sscanf(buffer, "%*s %d %d", &max_stars, &nr_of_bins) != 2) {
 					printf("Invalid set of parameters\n");
 				} else if (nr_of_bins > 256) {
 					printf("Invalid set of parameters\n");
@@ -68,25 +73,25 @@ int main(void)
 				}
 			}
 		} else if (strcmp(command, "SAVE") == 0) {
-			char argument[256], save_file_name[256], is_ascii[256];
-		
-			fgets(argument, 256, stdin);
-			sscanf(argument, "%s %s", save_file_name, is_ascii);
+			char save_file_name[256], is_ascii[256];
+			sscanf(buffer, "%*s %s %s", save_file_name, is_ascii);
 			if (strcmp(is_ascii, "ascii") == 0) {
 				save(&img, save_file_name, true);
 			} else {
 				save(&img, save_file_name, false);
-			}		
+			}
 		} else {
 			printf("Invalid command\n");
 		}
-		scanf("%s", command);
+		fgets(buffer, 256, stdin);
+		sscanf(buffer, "%s", command);
 	}
-	if(img.height == 0) {
-		printf("No image loaded\n");
-	} else {
-		//free everything
+
+	if (img.pixel_mat) {
 		free_px_mat(img.pixel_mat, img.height);
+	} else {
+		printf("No image loaded\n");
 	}
+
 	return 0;
 }
