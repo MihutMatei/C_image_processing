@@ -65,12 +65,18 @@ int main(void)
 				printf("No image loaded\n");
 			} else {
 				int max_stars, nr_of_bins;
-				if (sscanf(buffer, "%*s %d %d", &max_stars, &nr_of_bins) != 2) {
-					printf("Invalid set of parameters\n");
+				if (sscanf(buffer, "%*s %d %d", &max_stars, &nr_of_bins) < 2) {
+					printf("Invalid command\n");
 				} else if (nr_of_bins > 256) {
 					printf("Invalid set of parameters\n");
 				} else {
-					histogram(&img, &selection, max_stars, nr_of_bins);
+					int trash1;
+					sscanf(buffer, "%*s %*d %*d %d", &trash1);
+					if (trash1 != 0) {
+						printf("Invalid command\n");
+					} else {
+						histogram(&img, &selection, max_stars, nr_of_bins);
+					}
 				}
 			}
 		} else if (strcmp(command, "SAVE") == 0) {
@@ -90,6 +96,7 @@ int main(void)
 
 	if (img.pixel_mat) {
 		free_px_mat(img.pixel_mat, img.height);
+		img.pixel_mat = NULL;
 	} else {
 		printf("No image loaded\n");
 	}

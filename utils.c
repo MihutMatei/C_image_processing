@@ -243,6 +243,7 @@ image_t load(char* filename)
 	// Free previously allocated memory if it exists
 	if (img.pixel_mat) {
 		free_px_mat(img.pixel_mat, img.height);
+		img.pixel_mat = NULL;
 	}
 
 	img.pixel_mat = alloc_px_mat(img.height, img.width);
@@ -271,6 +272,8 @@ image_t load(char* filename)
 		printf("Failed to load %s\n", filename);
 		if(img.pixel_mat) {
 			free_px_mat(img.pixel_mat, img.height);
+			img.pixel_mat = NULL;
+			
 		}
 		strcpy(img.type,"");
 		img.height = 0;
@@ -388,18 +391,23 @@ void handle_select(image_t *img, selection_t *selection, char *argument) {
 			if (sscanf(argument, "%*s %d %d %d %d", &x1, &y1, &x2, &y2) != 4) {
 				printf("Invalid command\n");
 			} else {
-				selection->x1 = (x1 < x2) ? x1 : x2;	
-				selection->y1 = (y1 < y2) ? y1 : y2;
-				selection->x2 = (x2 > x1) ? x2 : x1;
-				selection->y2 = (y2 > y1) ? y2 : y1;
-				if (selection->x1 < 0 || selection->x1 >= img->width ||
-					selection->x2 < 0 || selection->x2 > img->width ||
-					selection->y1 < 0 || selection->y1 >= img->height ||
-					selection->y2 < 0 || selection->y2 > img->height ||
+				selection_t buffer = {0};
+				buffer.x1 = (x1<x2) ? x1 : x2;
+				buffer.y1 = (y1<y2) ? y1 : y2;
+				buffer.x2 = (x2>x1) ? x2 : x1;
+				buffer.y2 = (y2>y1) ? y2 : y1;
+				if (buffer.x1 < 0 || buffer.x1 >= img->width ||
+					buffer.x2 < 0 || buffer.x2 > img->width ||
+					buffer.y1 < 0 || buffer.y1 >= img->height ||
+					buffer.y2 < 0 || buffer.y2 > img->height ||
 					(x1 == x2 && y1 == y2)) {
 					printf("Invalid set of coordinates\n");
+					return;
 				} else {
-					
+					selection->x1 = (x1 < x2) ? x1 : x2;	
+					selection->y1 = (y1 < y2) ? y1 : y2;
+					selection->x2 = (x2 > x1) ? x2 : x1;
+					selection->y2 = (y2 > y1) ? y2 : y1;
 					printf("Selected %d %d %d %d\n", selection->x1, selection->y1, selection->x2, selection->y2);
 				}
 			}
@@ -470,25 +478,34 @@ void rotate(image_t *img, selection_t *selection, int angle)
 
 void crop(image_t *img, selection_t *selection)
 {
+	// Verify dimensions
+	if (selection->x1 >= selection->x2 || selection->y1 >= selection->y2 ||
+		selection->x1 < 0 || selection->y1 < 0 ||
+		selection->x2 > img->width || selection->y2 > img->height) {
+		return;
+	}
+
 	int new_height = selection->y2 - selection->y1;
 	int new_width = selection->x2 - selection->x1;
 
 	pixel_t **new_mat = alloc_px_mat(new_height, new_width);
+	if (!new_mat)
+		return;
 
-	for(int i = selection->y1; i < selection->y2; i++) {
-		for(int j = selection->x1; j < selection->x2; j++) {
-			new_mat[i - selection->y1][j - selection->x1] = img->pixel_mat[i][j];
+	// Copy selected region to new matrix
+	for (int i = 0; i < new_height; i++) {
+		for (int j = 0; j < new_width; j++) {
+			new_mat[i][j] = img->pixel_mat[i + selection->y1][j + selection->x1];
 		}
 	}
 
+	// Free old matrix and update image properties
 	free_px_mat(img->pixel_mat, img->height);
-
 	img->height = new_height;
 	img->width = new_width;
 	img->pixel_mat = new_mat;
 	
 	set_selection_all(img, selection);
-
 }
 
 void histogram(image_t *img, selection_t *selection, int max_stars, int nr_of_bins)
@@ -570,6 +587,8 @@ int clamp(int value)
 void apply_edge(image_t *img, selection_t *selection)
 {
 	pixel_t **new_mat = alloc_px_mat(img->height, img->width);
+	if (!new_mat)
+		return;
 	int di[9] = {-1, -1, -1, 0, 0, 0, 1, 1, 1};
 	int dj[9] = {-1, 0, 1, -1, 0, 1, -1, 0, 1};
 	int dv[9] = {-1, -1, -1, -1, 8, -1, -1, -1, -1};
@@ -611,6 +630,8 @@ void apply_edge(image_t *img, selection_t *selection)
 void apply_sharpen(image_t *img, selection_t *selection)
 {
 	pixel_t **new_mat = alloc_px_mat(img->height, img->width);
+	if (!new_mat)
+		return;
 	int di[9] = {-1, -1, -1, 0, 0, 0, 1, 1, 1};
 	int dj[9] = {-1, 0, 1, -1, 0, 1, -1, 0, 1};
 	int dv[9] = {0, -1 , 0, -1, 5, -1, 0, -1, 0};
@@ -652,6 +673,8 @@ void apply_sharpen(image_t *img, selection_t *selection)
 void apply_box_blur(image_t *img, selection_t *selection)
 {
 	pixel_t **new_mat = alloc_px_mat(img->height, img->width);
+	if (!new_mat)
+		return;
 	int di[9] = {-1, -1, -1, 0, 0, 0, 1, 1, 1};
 	int dj[9] = {-1, 0, 1, -1, 0, 1, -1, 0, 1};
 	int dv[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
@@ -692,43 +715,49 @@ void apply_box_blur(image_t *img, selection_t *selection)
 
 void apply_gaussian_blur(image_t *img, selection_t *selection)
 {
-	pixel_t **new_mat = alloc_px_mat(img->height, img->width);
+	pixel_t **new_mat = alloc_px_mat(selection->y2 - selection->y1, selection->x2 - selection->x1);
+	if (!new_mat)
+	    return;
+
 	int di[9] = {-1, -1, -1, 0, 0, 0, 1, 1, 1};
 	int dj[9] = {-1, 0, 1, -1, 0, 1, -1, 0, 1};
 	int dv[9] = {1, 2, 1, 2, 4, 2, 1, 2, 1};
+
 	for (int i = selection->y1; i < selection->y2; i++) {
-		for (int j = selection->x1; j < selection->x2; j++) {
-			bool is_edge = false;
-			double sum_r = 0, sum_g = 0, sum_b = 0;
-			for (int k = 0; k < 9; k++) {
-				int ni = i + di[k];
-				int nj = j + dj[k];
-				if (ni < 0 || ni >= img->height || nj < 0 || nj >= img->width) {
-					is_edge = true;
-					break;
-				} else {
-					sum_r += img->pixel_mat[ni][nj].r * dv[k];
-					sum_g += img->pixel_mat[ni][nj].g * dv[k];
-					sum_b += img->pixel_mat[ni][nj].b * dv[k];
-				}
-			}
-			if (!is_edge) {
-			new_mat[i][j].r = clamp((int)round(sum_r / 16));
-			new_mat[i][j].g = clamp((int)round(sum_g / 16));
-			new_mat[i][j].b = clamp((int)round(sum_b / 16));
-			} else {
-				new_mat[i][j].r = img->pixel_mat[i][j].r;
-				new_mat[i][j].g = img->pixel_mat[i][j].g;
-				new_mat[i][j].b = img->pixel_mat[i][j].b;
-			}
-		}
+	    for (int j = selection->x1; j < selection->x2; j++) {
+	        bool is_edge = false;
+	        double sum_r = 0, sum_g = 0, sum_b = 0;
+	        for (int k = 0; k < 9; k++) {
+	            int ni = i + di[k];
+	            int nj = j + dj[k];
+	            if (ni < 0 || ni >= img->height || nj < 0 || nj >= img->width) {
+	                is_edge = true;
+	                break;
+	            } else {
+	                sum_r += img->pixel_mat[ni][nj].r * dv[k];
+	                sum_g += img->pixel_mat[ni][nj].g * dv[k];
+	                sum_b += img->pixel_mat[ni][nj].b * dv[k];
+	            }
+	        }
+	        if (!is_edge) {
+	            new_mat[i - selection->y1][j - selection->x1].r = clamp((int)round(sum_r / 16));
+	            new_mat[i - selection->y1][j - selection->x1].g = clamp((int)round(sum_g / 16));
+	            new_mat[i - selection->y1][j - selection->x1].b = clamp((int)round(sum_b / 16));
+	        } else {
+	            new_mat[i - selection->y1][j - selection->x1].r = img->pixel_mat[i][j].r;
+	            new_mat[i - selection->y1][j - selection->x1].g = img->pixel_mat[i][j].g;
+	            new_mat[i - selection->y1][j - selection->x1].b = img->pixel_mat[i][j].b;
+	        }
+	    }
 	}
+
 	for (int i = selection->y1; i < selection->y2; i++) {
-		for (int j = selection->x1; j < selection->x2; j++) {
-			img->pixel_mat[i][j] = new_mat[i][j];
-		}
+	    for (int j = selection->x1; j < selection->x2; j++) {
+	        img->pixel_mat[i][j] = new_mat[i - selection->y1][j - selection->x1];
+	    }
 	}
-	free_px_mat(new_mat, img->height);
+
+	free_px_mat(new_mat, selection->y2 - selection->y1);
 }
 
 void apply_filter(image_t *img, selection_t *selection, char *argument)
