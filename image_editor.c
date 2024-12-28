@@ -11,7 +11,8 @@ int main(void)
 {
 	image_t img = {0};
 	selection_t selection = {0};
-	char command[256], buffer[256];
+	char command[256] = {0}; // Initialize command array
+	char buffer[256] = {0};  // Initialize buffer array
 
 	fgets(buffer, 256, stdin);
 	sscanf(buffer, "%s", command);
@@ -39,7 +40,7 @@ int main(void)
 					!is_selection_all(&img, &selection)) {
 					printf("The selection must be square\n");
 				} else {
-					int angle;
+					int angle = 0;
 					sscanf(buffer, "%*s %d", &angle);
 					if (angle % 90 != 0) {
 						printf("Unsupported rotation angle\n");
@@ -70,7 +71,7 @@ int main(void)
 				} else if (nr_of_bins > 256) {
 					printf("Invalid set of parameters\n");
 				} else {
-					int trash1;
+					int trash1 = 0;
 					sscanf(buffer, "%*s %*d %*d %d", &trash1);
 					if (trash1 != 0) {
 						printf("Invalid command\n");
@@ -80,7 +81,7 @@ int main(void)
 				}
 			}
 		} else if (strcmp(command, "SAVE") == 0) {
-			char save_file_name[256], is_ascii[256];
+			char save_file_name[256] = "", is_ascii[256] = "";
 			sscanf(buffer, "%*s %s %s", save_file_name, is_ascii);
 			if (strcmp(is_ascii, "ascii") == 0) {
 				save(&img, save_file_name, true);

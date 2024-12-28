@@ -503,6 +503,7 @@ void rotate(image_t *img, selection_t *selection, int angle)
        		img->width = img->height;
        		img->height = temp;
     	}
+		set_selection_all(img, selection);
 	} else {
 		for(int i = selection->y1; i < selection->y2; i++) {
 			for(int j = selection->x1; j < selection->x2; j++) {
