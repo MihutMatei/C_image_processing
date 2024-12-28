@@ -50,7 +50,7 @@ int main(void)
 				}
 			}
 		} else if (strcmp(command, "EQUALIZE") == 0) {
-			equalize(&img, &selection);
+			equalize(&img);
 		} else if (strcmp(command, "CROP") == 0) {
 			if (img.height == 0) {
 				printf("No image loaded\n");

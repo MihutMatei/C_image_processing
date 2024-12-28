@@ -540,37 +540,49 @@ void histogram(image_t *img, selection_t *selection, int max_stars, int nr_of_bi
 	}
 }
 
-void equalize(image_t *img, selection_t *selection)
+void equalize(image_t *img)
 {
-	if(img->height == 0) {
-		printf("No image loaded\n");
-		img->pixel_mat = NULL;
-		return;
-	}
-	if (img->type[1] == '3' || img->type[1] == '6') {
-		printf("Black and white image needed\n");
-		return;
-	}
+    if(img->height == 0) {
+        printf("No image loaded\n");
+        img->pixel_mat = NULL;
+        return;
+    }
+    if (img->type[1] == '3' || img->type[1] == '6') {
+        printf("Black and white image needed\n");
+        return;
+    }
 
-	int freq[256] = {0};
-	for(int i = selection->y1; i < selection->y2; i++) {
-		for(int j = selection->x1; j < selection->x2; j++) {
-			freq[img->pixel_mat[i][j].r]++;
-		}
-	}
-	for(int i = selection->y1; i < selection->y2; i++) {
-		for(int j = selection->x1; j < selection->x2; j++) {
-			int sum = 0;
-			for(int k = 0; k < img->pixel_mat[i][j].r; k++) {
-				sum += freq[k];
-			}
-			img->pixel_mat[i][j].r = (unsigned char)((sum * 255) / (img->height * img->width));
-			img->pixel_mat[i][j].g = img->pixel_mat[i][j].r;
-			img->pixel_mat[i][j].b = img->pixel_mat[i][j].r;
-		}
-	}
-	printf("Equalize done\n");
-	return;
+    // Calculate histogram
+    int freq[256] = {0};
+    int total_pixels = img->height * img->width;
+    
+    for(int i = 0; i < img->height; i++) {
+        for(int j = 0; j < img->width; j++) {
+            freq[img->pixel_mat[i][j].r]++;
+        }
+    }
+
+    // Calculate cumulative distribution
+    int cumulative[256] = {0};
+    cumulative[0] = freq[0];
+    for(int i = 1; i < 256; i++) {
+        cumulative[i] = cumulative[i-1] + freq[i];
+    }
+
+    // Apply transformation
+    for(int i = 0; i < img->height; i++) {
+        for(int j = 0; j < img->width; j++) {
+            int old_value = img->pixel_mat[i][j].r;
+            // Scale the value using the cumulative distribution
+            int new_value = (int)round((double)cumulative[old_value] * 255 / total_pixels);
+            img->pixel_mat[i][j].r = (unsigned char)clamp(new_value);
+            img->pixel_mat[i][j].g = img->pixel_mat[i][j].r;
+            img->pixel_mat[i][j].b = img->pixel_mat[i][j].r;
+        }
+    }
+    
+    printf("Equalize done\n");
+    return;
 }
 
 int clamp(int value)

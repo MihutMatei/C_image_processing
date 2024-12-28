@@ -39,7 +39,7 @@ bool is_selection_all(image_t *img,selection_t *selection);
 void rotate(image_t *img, selection_t *selection, int angle);
 void crop(image_t *img, selection_t *selection);
 void histogram(image_t *img, selection_t *selection,int x, int y);
-void equalize(image_t *img, selection_t *selection);
+void equalize(image_t *img);
 void apply_filter(image_t *img, selection_t *selection, char *argument);
 void apply_edge(image_t *img, selection_t *selection);
 void apply_sharpen(image_t *img, selection_t *selection);
