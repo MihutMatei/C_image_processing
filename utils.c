@@ -242,6 +242,11 @@ image_t load(char* filename)
 	fscanf(in, "%d %d", &img.width, &img.height);
 	fscanf(in, "%d", &img.max_val);
 
+	// Free previously allocated memory if it exists
+	if (img.pixel_mat) {
+		free_px_mat(img.pixel_mat, img.height);
+	}
+
 	img.pixel_mat = alloc_px_mat(img.height, img.width);
 	if (!img.pixel_mat) {
 		fclose(in);
@@ -469,10 +474,10 @@ void crop(image_t *img, selection_t *selection)
 		}
 	}
 
+	free_px_mat(img->pixel_mat, img->height);
+
 	img->height = new_height;
 	img->width = new_width;
-
-	free_px_mat(img->pixel_mat, img->height);
 	img->pixel_mat = new_mat;
 	
 	set_selection_all(img, selection);
