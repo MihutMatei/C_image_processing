@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <math.h>
 #include "image_editor.h"
 
 pixel_t **alloc_px_mat(int size1, int size2)
@@ -331,8 +332,6 @@ void save(image_t *img, char* filename, bool is_ascii)
 		printf("Saved %s\n", filename);
 
 	} else {
-		///TODO: nu uita ca imaginile nu pot fi deschise decat daca typul de imagine e cel bun P4 P5 P6 momentan nu se face conversia din plain in binar decat 
-		///pentru continutul imaginii, probabil trebuie schimbat antetul corespunzator
 		FILE *out = fopen(filename, "wb");
 		if(!out) {
 			printf("Failed to save %s\n", filename);
@@ -386,17 +385,25 @@ void handle_select(image_t *img, selection_t *selection, char *argument) {
 			set_selection_all(img, selection);
 			printf("Selected ALL\n");
 		} else {
-			sscanf(argument, "%*s %d %d %d %d", &x1, &y1, &x2, &y2);
-			if (x1 < 0 || x1 > img->width || x2 < 0 || x2 > img->width ||
-				y1 < 0 || y1 > img->height || y2 < 0 || y2 > img->height) {
-				printf("Invalid set of coordinates\n");
+			if (sscanf(argument, "%*s %d %d %d %d", &x1, &y1, &x2, &y2) != 4) {
+				printf("Invalid command\n");
 			} else {
-				selection->x1 = (x1 < x2) ? x1 : x2;
+				selection->x1 = (x1 < x2) ? x1 : x2;	
 				selection->y1 = (y1 < y2) ? y1 : y2;
 				selection->x2 = (x2 > x1) ? x2 : x1;
 				selection->y2 = (y2 > y1) ? y2 : y1;
-				printf("Selected %d %d %d %d\n", x1, y1, x2, y2);
+				if (selection->x1 < 0 || selection->x1 >= img->width ||
+					selection->x2 < 0 || selection->x2 > img->width ||
+					selection->y1 < 0 || selection->y1 >= img->height ||
+					selection->y2 < 0 || selection->y2 > img->height ||
+					(x1 == x2 && y1 == y2)) {
+					printf("Invalid set of coordinates\n");
+				} else {
+					
+					printf("Selected %d %d %d %d\n", selection->x1, selection->y1, selection->x2, selection->y2);
+				}
 			}
+			
 		}
 	}
 }
@@ -569,7 +576,7 @@ void apply_edge(image_t *img, selection_t *selection)
 	for (int i = selection->y1; i < selection->y2; i++) {
 		for (int j = selection->x1; j < selection->x2; j++) {
 			bool is_edge = false;
-			int sum_r = 0, sum_g = 0, sum_b = 0;
+			double sum_r = 0, sum_g = 0, sum_b = 0;
 			for (int k = 0; k < 9; k++) {
 				int ni = i + di[k];
 				int nj = j + dj[k];
@@ -583,9 +590,9 @@ void apply_edge(image_t *img, selection_t *selection)
 				}
 			}
 			if(!is_edge) {
-				new_mat[i][j].r = clamp(sum_r);
-				new_mat[i][j].g = clamp(sum_g);
-				new_mat[i][j].b = clamp(sum_b);
+				new_mat[i][j].r = clamp((int)round(sum_r));
+				new_mat[i][j].g = clamp((int)round(sum_g));
+				new_mat[i][j].b = clamp((int)round(sum_b));
 			} else {
 				new_mat[i][j].r = img->pixel_mat[i][j].r;
 				new_mat[i][j].g = img->pixel_mat[i][j].g;
@@ -610,7 +617,7 @@ void apply_sharpen(image_t *img, selection_t *selection)
 	for (int i = selection->y1; i < selection->y2; i++) {
 		for (int j = selection->x1; j < selection->x2; j++) {
 			bool is_edge = false;
-			int sum_r = 0, sum_g = 0, sum_b = 0;
+			double sum_r = 0, sum_g = 0, sum_b = 0;
 			for (int k = 0; k < 9; k++) {
 				int ni = i + di[k];
 				int nj = j + dj[k];
@@ -624,9 +631,9 @@ void apply_sharpen(image_t *img, selection_t *selection)
 				}
 			}
 			if(!is_edge) {
-				new_mat[i][j].r = clamp(sum_r);
-				new_mat[i][j].g = clamp(sum_g);
-				new_mat[i][j].b = clamp(sum_b);
+				new_mat[i][j].r = clamp((int)round(sum_r));
+				new_mat[i][j].g = clamp((int)round(sum_g));
+				new_mat[i][j].b = clamp((int)round(sum_b));
 			} else {
 				new_mat[i][j].r = img->pixel_mat[i][j].r;
 				new_mat[i][j].g = img->pixel_mat[i][j].g;
@@ -651,7 +658,7 @@ void apply_box_blur(image_t *img, selection_t *selection)
 	for (int i = selection->y1; i < selection->y2; i++) {
 		for (int j = selection->x1; j < selection->x2; j++) {
 			bool is_edge = false;
-			int sum_r = 0, sum_g = 0, sum_b = 0;
+			double sum_r = 0, sum_g = 0, sum_b = 0;
 			for (int k = 0; k < 9; k++) {
 				int ni = i + di[k];
 				int nj = j + dj[k];
@@ -665,9 +672,9 @@ void apply_box_blur(image_t *img, selection_t *selection)
 				}
 			}
 			if (!is_edge) {
-				new_mat[i][j].r = clamp(sum_r / 9);
-				new_mat[i][j].g = clamp(sum_g / 9);
-				new_mat[i][j].b = clamp(sum_b / 9);
+				new_mat[i][j].r = clamp((int)round(sum_r / 9));
+				new_mat[i][j].g = clamp((int)round(sum_g / 9));
+				new_mat[i][j].b = clamp((int)round(sum_b / 9));
 			} else {
 				new_mat[i][j].r = img->pixel_mat[i][j].r;
 				new_mat[i][j].g = img->pixel_mat[i][j].g;
@@ -692,7 +699,7 @@ void apply_gaussian_blur(image_t *img, selection_t *selection)
 	for (int i = selection->y1; i < selection->y2; i++) {
 		for (int j = selection->x1; j < selection->x2; j++) {
 			bool is_edge = false;
-			int sum_r = 0, sum_g = 0, sum_b = 0;
+			double sum_r = 0, sum_g = 0, sum_b = 0;
 			for (int k = 0; k < 9; k++) {
 				int ni = i + di[k];
 				int nj = j + dj[k];
@@ -706,9 +713,9 @@ void apply_gaussian_blur(image_t *img, selection_t *selection)
 				}
 			}
 			if (!is_edge) {
-			new_mat[i][j].r = clamp(sum_r / 16);
-			new_mat[i][j].g = clamp(sum_g / 16);
-			new_mat[i][j].b = clamp(sum_b / 16);
+			new_mat[i][j].r = clamp((int)round(sum_r / 16));
+			new_mat[i][j].g = clamp((int)round(sum_g / 16));
+			new_mat[i][j].b = clamp((int)round(sum_b / 16));
 			} else {
 				new_mat[i][j].r = img->pixel_mat[i][j].r;
 				new_mat[i][j].g = img->pixel_mat[i][j].g;
