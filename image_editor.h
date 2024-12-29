@@ -28,18 +28,18 @@ pixel_t **alloc_px_mat(int size1, int size2);
 void free_px_mat(pixel_t **mat, int size);
 
 image_t load(char *filename);
-void save(image_t *img, char* filename, bool is_ascii);
+void save(image_t *img, char *filename, bool is_ascii);
 
 void handle_select(image_t *img, selection_t *selection, char *argument);
 void set_selection_all(image_t *img, selection_t *selection);
 
 bool is_selection_square(selection_t *selection);
-bool is_selection_all(image_t *img,selection_t *selection);
+bool is_selection_all(image_t *img, selection_t *selection);
 
 void rotate(image_t *img, selection_t *selection, int angle);
 void handle_rotate(image_t *img, selection_t *selection, char *buffer);
 void crop(image_t *img, selection_t *selection);
-void histogram(image_t *img, selection_t *selection,int x, int y);
+void histogram(image_t *img, selection_t *selection, int x, int y);
 void handle_histogram(image_t *img, selection_t *selection, char *buffer);
 void equalize(image_t *img);
 void apply_filter(image_t *img, selection_t *selection, char *argument);
