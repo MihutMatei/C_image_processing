@@ -1,4 +1,7 @@
 //311CA_MihutMatei_Tema3
+#ifndef MYHEADER_H
+#define MYHEADER_H
+
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -255,3 +258,5 @@ image_t load_binary_bw(FILE *in, image_t *img);
  * @return Clamped value.
  */
 int clamp(int value);
+
+#endif
