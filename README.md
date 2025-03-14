@@ -1,4 +1,4 @@
-# 311CA_MihutMatei_Tema3
+# C_image_processing
 
 ## Overview
 
